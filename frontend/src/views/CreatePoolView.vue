@@ -48,7 +48,7 @@
           <label class="form-label">Phone Number</label>
           <input type="tel" v-model="userForm.phone" class="form-control" required>
         </div>
-        <div class="flex gap-4 mb-6">
+        <div class="flex gap-4 mb-6 join-form-row">
           <div class="form-group flex-1" style="margin-bottom: 0;">
             <label class="form-label">Year of Study</label>
             <select v-model="userForm.year" class="form-control" required>
@@ -162,5 +162,12 @@ const createPool = async () => {
   border-radius: var(--radius-md);
   font-size: 0.875rem;
   border: 1px solid #fecaca;
+}
+
+@media (max-width: 640px) {
+  .join-form-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
 }
 </style>

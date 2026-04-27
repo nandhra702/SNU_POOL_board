@@ -98,7 +98,7 @@
             <label class="form-label">Phone Number</label>
             <input type="tel" v-model="userForm.phone" class="form-control" required>
           </div>
-          <div class="flex gap-4 mb-6">
+          <div class="flex gap-4 mb-6 join-form-row">
             <div class="form-group flex-1" style="margin-bottom: 0;">
               <label class="form-label">Year of Study</label>
               <select v-model="userForm.year" class="form-control" required>
@@ -325,5 +325,12 @@ const formattedTime = computed(() => {
   font-size: 0.75rem;
   display: inline-flex;
   align-items: center;
+}
+
+@media (max-width: 640px) {
+  .join-form-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
 }
 </style>
