@@ -126,30 +126,40 @@ def join_pool(
     join_in: schemas.PoolJoin,
     db: Session = Depends(database.get_db)
 ):
-    user = get_or_create_user(db, join_in.user)
+    try:
+        user = get_or_create_user(db, join_in.user)
+            
+        pool = db.query(models.Pool).filter(models.Pool.id == pool_id).first()
+        if not pool:
+            raise HTTPException(status_code=404, detail="Pool not found")
+            
+        # Compare using naive datetimes or aware datetimes correctly
+        if isinstance(pool.departure_time, str):
+            # Fallback if DB returns string instead of datetime
+            pool_dt = datetime.fromisoformat(pool.departure_time.replace('Z', '+00:00')).replace(tzinfo=None)
+        else:
+            pool_dt = pool.departure_time.replace(tzinfo=None)
+            
+        if pool_dt < datetime.utcnow():
+            raise HTTPException(status_code=400, detail="Cannot join past pools")
+            
+        # Check duplicate
+        existing = db.query(models.PoolMember).filter(
+            models.PoolMember.pool_id == pool_id,
+            models.PoolMember.user_id == user.id
+        ).first()
         
-    pool = db.query(models.Pool).filter(models.Pool.id == pool_id).first()
-    if not pool:
-        raise HTTPException(status_code=404, detail="Pool not found")
+        if existing:
+            raise HTTPException(status_code=400, detail="Already joined this pool")
+            
+        new_member = models.PoolMember(pool_id=pool_id, user_id=user.id)
+        db.add(new_member)
+        db.commit()
         
-    # Compare using naive datetimes or aware datetimes correctly
-    # pool.departure_time from postgres might be aware (UTC) or naive.
-    # To be safe, compare timestamp or make both naive.
-    pool_dt = pool.departure_time.replace(tzinfo=None)
-    if pool_dt < datetime.utcnow():
-        raise HTTPException(status_code=400, detail="Cannot join past pools")
-        
-    # Check duplicate
-    existing = db.query(models.PoolMember).filter(
-        models.PoolMember.pool_id == pool_id,
-        models.PoolMember.user_id == user.id
-    ).first()
-    
-    if existing:
-        raise HTTPException(status_code=400, detail="Already joined this pool")
-        
-    new_member = models.PoolMember(pool_id=pool_id, user_id=user.id)
-    db.add(new_member)
-    db.commit()
-    
-    return {"message": "Successfully joined the pool"}
+        return {"message": "Successfully joined the pool"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Server error during join: {str(e)}")
