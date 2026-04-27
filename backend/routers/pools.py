@@ -133,14 +133,15 @@ def join_pool(
         if not pool:
             raise HTTPException(status_code=404, detail="Pool not found")
             
-        # Compare using naive datetimes or aware datetimes correctly
-        if isinstance(pool.departure_time, str):
-            # Fallback if DB returns string instead of datetime
-            pool_dt = datetime.fromisoformat(pool.departure_time.replace('Z', '+00:00')).replace(tzinfo=None)
-        else:
-            pool_dt = pool.departure_time.replace(tzinfo=None)
+        # Compare using timezone-aware datetimes
+        pool_dt = pool.departure_time
+        if isinstance(pool_dt, str):
+            pool_dt = datetime.fromisoformat(pool_dt.replace('Z', '+00:00'))
             
-        if pool_dt < datetime.utcnow():
+        if pool_dt.tzinfo is None:
+            pool_dt = pool_dt.replace(tzinfo=timezone.utc)
+            
+        if pool_dt < datetime.now(timezone.utc):
             raise HTTPException(status_code=400, detail="Cannot join past pools")
             
         # Check duplicate
