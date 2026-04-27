@@ -100,7 +100,11 @@ const userForm = ref({
   department: ''
 })
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+if (!API_URL.endsWith('/api') && !API_URL.endsWith('/api/')) {
+  API_URL = API_URL.replace(/\/$/, '') + '/api'
+}
+API_URL = API_URL.replace(/\/$/, '')
 
 // Set min datetime to current time
 const minDateTime = computed(() => {
