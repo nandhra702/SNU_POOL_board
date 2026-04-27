@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, func
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import models, schemas, database
 
 router = APIRouter(prefix="/api/pools", tags=["pools"])
@@ -63,7 +63,7 @@ def get_pools(
     db: Session = Depends(database.get_db)
 ):
     # Base query for future pools
-    query = db.query(models.Pool).filter(models.Pool.departure_time > datetime.utcnow())
+    query = db.query(models.Pool).filter(models.Pool.departure_time > func.now())
     
     if source:
         query = query.filter(models.Pool.source.ilike(f"%{source}%"))
@@ -132,7 +132,11 @@ def join_pool(
     if not pool:
         raise HTTPException(status_code=404, detail="Pool not found")
         
-    if pool.departure_time < datetime.utcnow():
+    # Compare using naive datetimes or aware datetimes correctly
+    # pool.departure_time from postgres might be aware (UTC) or naive.
+    # To be safe, compare timestamp or make both naive.
+    pool_dt = pool.departure_time.replace(tzinfo=None)
+    if pool_dt < datetime.utcnow():
         raise HTTPException(status_code=400, detail="Cannot join past pools")
         
     # Check duplicate
