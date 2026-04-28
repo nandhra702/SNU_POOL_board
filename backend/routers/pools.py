@@ -226,3 +226,38 @@ def join_pool(
             status_code=500,
             detail=f"Server error during join: {str(e)}"
         )
+
+@router.post("/{pool_id}/leave")
+def leave_pool(
+    pool_id: int,
+    leave_in: schemas.PoolLeave,
+    db: Session = Depends(database.get_db)
+):
+    user = db.query(models.User).filter(models.User.phone == leave_in.user.phone).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    pool = db.query(models.Pool).filter(models.Pool.id == pool_id).first()
+    if not pool:
+        raise HTTPException(status_code=404, detail="Pool not found")
+
+    # Check if member
+    member = db.query(models.PoolMember).filter(
+        models.PoolMember.pool_id == pool_id,
+        models.PoolMember.user_id == user.id
+    ).first()
+
+    if not member:
+        raise HTTPException(status_code=400, detail="You are not a member of this pool")
+
+    # If creator leaves, delete the pool
+    if pool.creator_id == user.id:
+        db.delete(pool)
+        db.commit()
+        return {"message": "Pool deleted as the creator left"}
+    
+    # Otherwise just remove member
+    db.delete(member)
+    db.commit()
+    
+    return {"message": "Successfully left the pool"}

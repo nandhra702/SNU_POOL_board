@@ -14,5 +14,16 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
+  api:
+    build: ./backend
+    container_name: snu_pool_api
+    environment:
+      - DATABASE_URL=postgresql://snupool:password@db:5432/snupool_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
 volumes:
   postgres_data:

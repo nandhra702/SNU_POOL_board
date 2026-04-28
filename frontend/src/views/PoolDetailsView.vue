@@ -127,6 +127,12 @@
       <div v-else-if="hasJoined" class="card text-center mb-6 bg-success-light">
         <div class="success-icon mx-auto mb-2" style="margin-left: auto; margin-right: auto;">✓</div>
         <h3>You are in this carpool</h3>
+        <p class="text-secondary text-sm mb-4">You can contact other participants using the buttons above.</p>
+        <button @click="leavePool" class="btn btn-secondary btn-block" :disabled="leaving">
+          <span v-if="leaving">Leaving...</span>
+          <span v-else>Leave Carpool</span>
+        </button>
+        <p v-if="leaveError" class="text-error text-sm mt-2">{{ leaveError }}</p>
       </div>
     </div>
   </div>
@@ -134,15 +140,18 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
 
 const route = useRoute()
+const router = useRouter()
 const pool = ref({})
 const loading = ref(true)
 const error = ref('')
 const joining = ref(false)
 const joinError = ref('')
+const leaving = ref(false)
+const leaveError = ref('')
 
 const userForm = ref({
   name: '',
@@ -196,6 +205,27 @@ const joinPool = async () => {
     joinError.value = err.response?.data?.detail || 'Failed to join pool.'
   } finally {
     joining.value = false
+  }
+}
+
+const leavePool = async () => {
+  if (!confirm('Are you sure you want to leave this carpool?')) return
+  
+  leaving.value = true
+  leaveError.value = ''
+  
+  try {
+    const res = await axios.post(`${API_URL}/pools/${route.params.id}/leave`, { user: userForm.value })
+    if (res.data.message.includes('deleted')) {
+      alert('You were the creator, so the pool has been deleted.')
+      router.push('/')
+    } else {
+      await fetchPoolDetails()
+    }
+  } catch (err) {
+    leaveError.value = err.response?.data?.detail || 'Failed to leave pool.'
+  } finally {
+    leaving.value = false
   }
 }
 

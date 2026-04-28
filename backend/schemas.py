@@ -19,6 +19,9 @@ class PoolCreate(BaseModel):
 class PoolJoin(BaseModel):
     user: UserDetails
 
+class PoolLeave(BaseModel):
+    user: UserDetails
+
 class PoolMemberResponse(BaseModel):
     name: Optional[str]
     phone: Optional[str]
