@@ -13,12 +13,14 @@
       <form @submit.prevent="saveProfile">
         <div class="form-group">
           <label class="form-label">Full Name</label>
-          <input type="text" v-model="profile.name" class="form-control" required>
+          <input type="text" v-model="profile.name" class="form-control" required
+            pattern="[a-zA-Z\s]+" title="Name should only contain letters and spaces">
         </div>
 
         <div class="form-group">
           <label class="form-label">Phone Number</label>
-          <input type="tel" v-model="profile.phone" class="form-control" required placeholder="e.g. 9876543210">
+          <input type="tel" v-model="profile.phone" class="form-control" required placeholder="e.g. 9876543210"
+            pattern="\d{10}" maxlength="10" title="Phone number must be exactly 10 digits">
         </div>
 
         <div class="form-group">
@@ -36,7 +38,8 @@
 
         <div class="form-group mb-6">
           <label class="form-label">Department / Major</label>
-          <input type="text" v-model="profile.department" class="form-control" required placeholder="e.g. Computer Science">
+          <input type="text" v-model="profile.department" class="form-control" required placeholder="e.g. Computer Science"
+            pattern="[a-zA-Z\s]+" title="Department should only contain letters and spaces">
         </div>
 
         <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
@@ -69,6 +72,27 @@ const API_URL = 'http://localhost:8000/api'
 const saveProfile = async () => {
   loading.value = true
   error.value = ''
+  
+  // Validation
+  const nameRegex = /^[a-zA-Z\s]+$/
+  const phoneRegex = /^\d{10}$/
+  const deptRegex = /^[a-zA-Z\s]+$/
+
+  if (!nameRegex.test(profile.value.name)) {
+    error.value = 'Name should only contain letters and spaces.'
+    loading.value = false
+    return
+  }
+  if (!phoneRegex.test(profile.value.phone)) {
+    error.value = 'Phone number must be exactly 10 digits.'
+    loading.value = false
+    return
+  }
+  if (!deptRegex.test(profile.value.department)) {
+    error.value = 'Department should only contain letters and spaces.'
+    loading.value = false
+    return
+  }
   
   try {
     const token = localStorage.getItem('token')

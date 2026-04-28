@@ -42,11 +42,13 @@
         <h3 class="mb-4 border-b pb-2 mt-6">Your Details</h3>
         <div class="form-group">
           <label class="form-label">Name</label>
-          <input type="text" v-model="userForm.name" class="form-control" required>
+          <input type="text" v-model="userForm.name" class="form-control" required 
+            pattern="[a-zA-Z\s]+" title="Name should only contain letters and spaces">
         </div>
         <div class="form-group">
           <label class="form-label">Phone Number</label>
-          <input type="tel" v-model="userForm.phone" class="form-control" required>
+          <input type="tel" v-model="userForm.phone" class="form-control" required 
+            pattern="\d{10}" maxlength="10" title="Phone number must be exactly 10 digits">
         </div>
         <div class="flex gap-4 mb-6 join-form-row">
           <div class="form-group flex-1" style="margin-bottom: 0;">
@@ -63,7 +65,8 @@
           </div>
           <div class="form-group flex-1" style="margin-bottom: 0;">
             <label class="form-label">Major/Department</label>
-            <input type="text" v-model="userForm.department" class="form-control" required placeholder="e.g. CSE">
+            <input type="text" v-model="userForm.department" class="form-control" required placeholder="e.g. CSE"
+              pattern="[a-zA-Z\s]+" title="Department should only contain letters and spaces">
           </div>
         </div>
 
@@ -125,6 +128,27 @@ onMounted(() => {
 const createPool = async () => {
   loading.value = true
   error.value = ''
+  
+  // Validation
+  const nameRegex = /^[a-zA-Z\s]+$/
+  const phoneRegex = /^\d{10}$/
+  const deptRegex = /^[a-zA-Z\s]+$/
+
+  if (!nameRegex.test(userForm.value.name)) {
+    error.value = 'Name should only contain letters and spaces.'
+    loading.value = false
+    return
+  }
+  if (!phoneRegex.test(userForm.value.phone)) {
+    error.value = 'Phone number must be exactly 10 digits.'
+    loading.value = false
+    return
+  }
+  if (!deptRegex.test(userForm.value.department)) {
+    error.value = 'Department should only contain letters and spaces.'
+    loading.value = false
+    return
+  }
   
   try {
     // Save user details for next time

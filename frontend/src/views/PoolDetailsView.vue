@@ -92,11 +92,13 @@
         <form @submit.prevent="joinPool">
           <div class="form-group">
             <label class="form-label">Name</label>
-            <input type="text" v-model="userForm.name" class="form-control" required>
+            <input type="text" v-model="userForm.name" class="form-control" required
+              pattern="[a-zA-Z\s]+" title="Name should only contain letters and spaces">
           </div>
           <div class="form-group">
             <label class="form-label">Phone Number</label>
-            <input type="tel" v-model="userForm.phone" class="form-control" required>
+            <input type="tel" v-model="userForm.phone" class="form-control" required
+              pattern="\d{10}" maxlength="10" title="Phone number must be exactly 10 digits">
           </div>
           <div class="flex gap-4 mb-6 join-form-row">
             <div class="form-group flex-1" style="margin-bottom: 0;">
@@ -113,7 +115,8 @@
             </div>
             <div class="form-group flex-1" style="margin-bottom: 0;">
               <label class="form-label">Major/Department</label>
-              <input type="text" v-model="userForm.department" class="form-control" required placeholder="e.g. CSE">
+              <input type="text" v-model="userForm.department" class="form-control" required placeholder="e.g. CSE"
+                pattern="[a-zA-Z\s]+" title="Department should only contain letters and spaces">
             </div>
           </div>
           <button type="submit" class="btn btn-primary btn-block btn-lg" :disabled="joining">
@@ -196,6 +199,27 @@ const hasJoined = computed(() => {
 const joinPool = async () => {
   joining.value = true
   joinError.value = ''
+  
+  // Validation
+  const nameRegex = /^[a-zA-Z\s]+$/
+  const phoneRegex = /^\d{10}$/
+  const deptRegex = /^[a-zA-Z\s]+$/
+
+  if (!nameRegex.test(userForm.value.name)) {
+    joinError.value = 'Name should only contain letters and spaces.'
+    joining.value = false
+    return
+  }
+  if (!phoneRegex.test(userForm.value.phone)) {
+    joinError.value = 'Phone number must be exactly 10 digits.'
+    joining.value = false
+    return
+  }
+  if (!deptRegex.test(userForm.value.department)) {
+    joinError.value = 'Department should only contain letters and spaces.'
+    joining.value = false
+    return
+  }
   
   try {
     localStorage.setItem('snu_pool_user', JSON.stringify(userForm.value))

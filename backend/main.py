@@ -22,6 +22,6 @@ app.include_router(pools.router)
 def root():
     return {"message": "Welcome to SNU Pool API"}
 
-@app.get("/health")
+@app.head("/health")
 def health_check():
     return {"status": "ok"}
