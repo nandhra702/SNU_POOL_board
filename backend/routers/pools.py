@@ -250,14 +250,25 @@ def leave_pool(
     if not member:
         raise HTTPException(status_code=400, detail="You are not a member of this pool")
 
-    # If creator leaves, delete the pool
-    if pool.creator_id == user.id:
-        db.delete(pool)
-        db.commit()
-        return {"message": "Pool deleted as the creator left"}
-    
-    # Otherwise just remove member
+    # Remove member
     db.delete(member)
     db.commit()
     
+    # Check if pool is now empty
+    remaining_members = db.query(models.PoolMember).filter(
+        models.PoolMember.pool_id == pool_id
+    ).order_by(models.PoolMember.joined_at.asc()).all()
+
+    if not remaining_members:
+        db.delete(pool)
+        db.commit()
+        return {"message": "Pool deleted as no members are left"}
+
+    # If the user who left was the creator, transfer ownership to the next member
+    if pool.creator_id == user.id:
+        new_owner = remaining_members[0]
+        pool.creator_id = new_owner.user_id
+        db.commit()
+        return {"message": "Left successfully. Ownership transferred."}
+
     return {"message": "Successfully left the pool"}
