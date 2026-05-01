@@ -1,4 +1,4 @@
-# Python / Backend
+
 backend/venv/
 backend/__pycache__/
 backend/*.pyc
@@ -6,8 +6,6 @@ backend/.env
 backend/*.db
 backend/*.sqlite
 backend/drop_db.py
-
-# Node / Frontend
 frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
@@ -16,7 +14,6 @@ frontend/.env
 frontend/.env.*
 !frontend/.env.example
 
-# OS / Editor
 .DS_Store
 .vscode/
 .idea/
